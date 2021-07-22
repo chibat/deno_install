@@ -4,7 +4,13 @@
 
 set -e
 
-if ! command -v unzip >/dev/null; then
+set -x
+
+if command -v unzip >/dev/null; then
+	unzip_command=unzip
+elif command -v gunzip >/dev/null; then
+	unzip_command=gunzip
+else
 	echo "Error: unzip is required to install Deno (see: https://github.com/denoland/deno_install#unzip-is-required)." 1>&2
 	exit 1
 fi
@@ -34,7 +40,13 @@ if [ ! -d "$bin_dir" ]; then
 fi
 
 curl --fail --location --progress-bar --output "$exe.zip" "$deno_uri"
-unzip -d "$bin_dir" -o "$exe.zip"
+if [ "$unzip_command" = "unzip" ]
+then
+	unzip -d "$bin_dir" -o "$exe.zip"
+else
+	gunzip -c "$exe.zip" > "$exe"
+fi
+
 chmod +x "$exe"
 rm "$exe.zip"
 
